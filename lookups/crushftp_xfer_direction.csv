@@ -1,0 +1,4 @@
+command,direction
+STOR,inbound
+RETR,outbound
+DELE,delete

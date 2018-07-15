@@ -1,0 +1,32 @@
+<dashboard>
+  <label>Statistics</label>
+  <row>
+    <panel>
+      <title>Total GB Transferred</title>
+      <single>
+        <search>
+          <query>index="net_ftp" sourcetype="crushftp*" size=* 
+| dedup _time,user
+| eval size_gb=round(size/1024/1024,2) 
+| stats sum(size_gb) AS "Total GB"</query>
+          <earliest>0</earliest>
+          <latest></latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Number of Unique User</title>
+      <single>
+        <search>
+          <query>index="net_ftp" sourcetype="crushftp:*" 
+|  stats distinct_count(user)</query>
+          <earliest>0</earliest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+  </row>
+</dashboard>
