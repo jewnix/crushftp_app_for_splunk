@@ -1,6 +1,7 @@
 "command","vendor_command"
 "ABOR","Abort an active file transfer"
 "ACCT","Account information"
+"ACCEPT","Verifying Username Or Password"
 "ADAT","Authentication/Security Data"
 "ALLO","Allocate sufficient disk space to receive a file"
 "APPE","Append"
