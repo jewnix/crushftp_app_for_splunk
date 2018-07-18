@@ -1,2 +1,7 @@
-sourcetype,vendor,product,app
-crushftp,CrushFTP,CrushFTP,crushftp
+sourcetype,vendor,product,app,dest_svc
+crushftp,CrushFTP,CrushFTP,crushftp,
+crushftp:ftp,CrushFTP,CrushFTP,crushftp,FTP
+crushftp:sftp,CrushFTP,CrushFTP,crushftp,SFTP
+crushftp:http,CrushFTP,CrushFTP,crushftp,HTTP
+crushftp:https,CrushFTP,CrushFTP,crushftp,HTTPS
+crushftp:audit,CrushFTP,CrushFTP,crushftp,
