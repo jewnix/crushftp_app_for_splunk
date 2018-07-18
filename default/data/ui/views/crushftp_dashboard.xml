@@ -1,15 +1,39 @@
-<dashboard>
+<form>
   <label>CrushFTP Dashboard</label>
   <description>Main dashboard for CrushFTP</description>
+  <fieldset submitButton="false">
+    <input type="time" token="field1">
+      <label></label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="multiselect" token="crush_host" searchWhenChanged="true">
+      <label>Crush Host</label>
+      <choice value="*">ALL</choice>
+      <prefix>host=</prefix>
+      <delimiter> host=</delimiter>
+      <fieldForLabel>host</fieldForLabel>
+      <fieldForValue>host</fieldForValue>
+      <search>
+        <query>| inputlookup crushftp_hosts.csv</query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+      <initialValue>*</initialValue>
+    </input>
+  </fieldset>
   <row>
     <panel>
       <title>Failed Logins</title>
       <single>
         <search>
-          <query>index="net_ftp" eventtype=crushftp_access_failure 
+          <query>eventtype=crushftp_access_failure $crush_host$
 | dedup session_id
 | stats count</query>
-          <earliest>0</earliest>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="colorBy">value</option>
@@ -18,6 +42,7 @@
         <option name="numberPrecision">0</option>
         <option name="rangeColors">["0x53a051", "0x0877a6", "0xf8be34", "0xf1813f", "0xdc4e41"]</option>
         <option name="rangeValues">[0,30,70,100]</option>
+        <option name="refresh.display">progressbar</option>
         <option name="showSparkline">1</option>
         <option name="showTrendIndicator">1</option>
         <option name="trellis.enabled">0</option>
@@ -34,10 +59,11 @@
       <title>Successful Logins</title>
       <single>
         <search>
-          <query>index="net_ftp" eventtype="crushftp_access_success" 
+          <query>eventtype="crushftp_access_success" $crush_host$
 | dedup session_id
 | stats count</query>
-          <earliest>0</earliest>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="colorBy">value</option>
@@ -46,6 +72,7 @@
         <option name="numberPrecision">0</option>
         <option name="rangeColors">["0x53a051", "0x0877a6", "0xf8be34", "0xf1813f", "0xdc4e41"]</option>
         <option name="rangeValues">[0,30,70,100]</option>
+        <option name="refresh.display">progressbar</option>
         <option name="showSparkline">1</option>
         <option name="showTrendIndicator">1</option>
         <option name="trellis.enabled">0</option>
@@ -62,10 +89,11 @@
       <title>IP's Banned</title>
       <single>
         <search>
-          <query>index="net_ftp" sourcetype="crushftp"  command=BAN 
+          <query>sourcetype="crushftp" $crush_host$ command=BAN message="IP Banned"
 | dedup src_ip
 | stats count</query>
-          <earliest>0</earliest>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="colorBy">value</option>
@@ -74,6 +102,7 @@
         <option name="numberPrecision">0</option>
         <option name="rangeColors">["0x53a051", "0x0877a6", "0xf8be34", "0xf1813f", "0xdc4e41"]</option>
         <option name="rangeValues">[0,30,70,100]</option>
+        <option name="refresh.display">progressbar</option>
         <option name="showSparkline">1</option>
         <option name="showTrendIndicator">1</option>
         <option name="trellis.enabled">0</option>
@@ -90,9 +119,10 @@
       <title>Users Banned</title>
       <single>
         <search>
-          <query>index="net_ftp" sourcetype="crushftp"  command=BAN message="User Banned"
+          <query>sourcetype="crushftp" $crush_host$ command=BAN message="User Banned"
 | stats count</query>
-          <earliest>0</earliest>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="colorBy">value</option>
@@ -101,6 +131,7 @@
         <option name="numberPrecision">0</option>
         <option name="rangeColors">["0x53a051", "0x0877a6", "0xf8be34", "0xf1813f", "0xdc4e41"]</option>
         <option name="rangeValues">[0,30,70,100]</option>
+        <option name="refresh.display">progressbar</option>
         <option name="showSparkline">1</option>
         <option name="showTrendIndicator">1</option>
         <option name="trellis.enabled">0</option>
@@ -119,12 +150,12 @@
       <title>Top 10 Failed Logins By User</title>
       <chart>
         <search>
-          <query>index="net_ftp" eventtype=crushftp_access_failure 
+          <query>eventtype=crushftp_access_failure $crush_host$
 | dedup session_id
 | stats count by user 
 | sort -count</query>
-          <earliest>0</earliest>
-          <latest></latest>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
@@ -148,7 +179,7 @@
         <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
         <option name="charting.chart.stackMode">stacked</option>
         <option name="charting.chart.style">shiny</option>
-        <option name="charting.drilldown">none</option>
+        <option name="charting.drilldown">all</option>
         <option name="charting.layout.splitSeries">0</option>
         <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
         <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
@@ -159,23 +190,31 @@
         <option name="trellis.enabled">0</option>
         <option name="trellis.scales.shared">1</option>
         <option name="trellis.size">medium</option>
+        <drilldown>
+          <link target="_blank">search?q=eventtype=crushftp_access_failure 
+| dedup session_id
+| stats count by user 
+| sort -count&amp;earliest=$field1.earliest$&amp;latest=$field1.latest$</link>
+        </drilldown>
       </chart>
     </panel>
     <panel>
       <title>Top 10 Failed Logins By IP</title>
       <table>
         <search>
-          <query>index="net_ftp" eventtype=crushftp_access_failure 
+          <query>eventtype=crushftp_access_failure $crush_host$
 | dedup session_id
 | stats count by src_ip 
 | sort -count</query>
-          <earliest>0</earliest>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="count">20</option>
         <option name="dataOverlayMode">none</option>
         <option name="drilldown">cell</option>
         <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
         <option name="rowNumbers">false</option>
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>
@@ -185,12 +224,12 @@
       <title>Top 10 Successful Logins By User</title>
       <chart>
         <search>
-          <query>index="net_ftp" eventtype=crushftp_access_success
+          <query>eventtype=crushftp_access_success $crush_host$
 | dedup session_id
 | top limit=10 user
 | fields user count</query>
-          <earliest>0</earliest>
-          <latest></latest>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="charting.chart">pie</option>
@@ -198,53 +237,4 @@
       </chart>
     </panel>
   </row>
-  <row>
-    <panel>
-      <title>Total Volume by User</title>
-      <table>
-        <search>
-          <query>index="net_ftp" sourcetype="crushftp:*" command=STOR return_code=226 size=* 
-| eval size_gb=round(size/1024/1024,2) 
-| stats sum(size_gb) AS "Total GB" by user
-| sort - "Total GB"
-| head</query>
-          <earliest>0</earliest>
-          <latest></latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="count">20</option>
-        <option name="dataOverlayMode">none</option>
-        <option name="drilldown">cell</option>
-        <option name="percentagesRow">false</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="rowNumbers">false</option>
-        <option name="totalsRow">false</option>
-        <option name="wrap">true</option>
-      </table>
-    </panel>
-    <panel>
-      <title>10 Largest Files</title>
-      <table>
-        <search>
-          <query>index="net_ftp" sourcetype="crushftp*" command=STOR return_code=226 size=* 
-| dedup session_id
-| eval size_gb=round(size/1024/1024,2) 
-| stats sum(size_gb) AS "Total GB" by filename session_id
-| sort - "Total GB"
-| head</query>
-          <earliest>0</earliest>
-          <latest></latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="count">20</option>
-        <option name="dataOverlayMode">none</option>
-        <option name="drilldown">cell</option>
-        <option name="percentagesRow">false</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="rowNumbers">false</option>
-        <option name="totalsRow">false</option>
-        <option name="wrap">true</option>
-      </table>
-    </panel>
-  </row>
-</dashboard>
+</form>

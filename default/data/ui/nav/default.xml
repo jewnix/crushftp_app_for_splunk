@@ -1,6 +1,7 @@
-<nav search_view="search">
-  <view name="search" default='true' />
-  <view name="datasets" />
+<nav search_view="search" color="#F9A108">
+  <view name="crushftp_dashboard" default="true" />
+  <view name="statistics" />
+  <view name="search" />
   <view name="reports" />
   <view name="alerts" />
   <view name="dashboards" />

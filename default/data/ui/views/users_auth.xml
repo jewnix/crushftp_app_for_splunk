@@ -1,0 +1,26 @@
+<dashboard>
+  <label>Users</label>
+  <fieldset submitButton="false">
+    <input type="time" token="field1">
+      <label></label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="multiselect" token="crush_host" searchWhenChanged="true">
+      <label>Crush Host</label>
+      <prefix>host=</prefix>
+      <delimiter> host=</delimiter>
+      <fieldForLabel>host</fieldForLabel>
+      <fieldForValue>host</fieldForValue>
+      <search>
+        <query>| inputlookup crushftp_hosts.csv</query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+      <choice value="*">All</choice>
+      <default>*</default>
+    </input>
+  </fieldset>
+</dashboard>

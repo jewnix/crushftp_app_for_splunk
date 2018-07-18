@@ -1,0 +1,74 @@
+<form>
+  <label>Traffic</label>
+  <fieldset submitButton="false" autoRun="true">
+    <input type="time" token="field1">
+      <label></label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="multiselect" token="crush_host" searchWhenChanged="true">
+      <label>Crush Host</label>
+      <choice value="*">All</choice>
+      <default>*</default>
+      <prefix>host=</prefix>
+      <delimiter> host=</delimiter>
+      <fieldForLabel>host</fieldForLabel>
+      <fieldForValue>host</fieldForValue>
+      <search>
+        <query>| inputlookup crushftp_hosts.csv</query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <title>Inbound Traffic by User</title>
+      <table>
+        <search>
+          <query>eventtype=crushftp $crush_host$ (direction=inbound) size=* 
+| eval size_gb=round(size/1024/1024,2) 
+| stats sum(size_gb) AS "Total GB" by user
+| sort - "Total GB"
+| head</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">100</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Outbound Traffic by User</title>
+      <table>
+        <search>
+          <query>eventtype=crushftp $crush_host$ (direction=outbound) size=* 
+| eval size_gb=round(size/1024/1024,2) 
+| stats sum(size_gb) AS "Total GB" by user
+| sort - "Total GB"
+| head</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">100</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+</form>
