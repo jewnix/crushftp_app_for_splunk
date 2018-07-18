@@ -1,4 +1,5 @@
 protocol,port,dest_port
 FTP,21,21
 SFTP,2222,2222
+HTTP,9090,9090
 HTTPS,443,443
