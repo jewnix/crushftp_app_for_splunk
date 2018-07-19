@@ -1,0 +1,194 @@
+<form>
+  <label>Traffic</label>
+  <fieldset submitButton="false">
+    <input type="time" token="field1">
+      <label></label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="multiselect" token="crush_host" searchWhenChanged="true">
+      <label>Crush Host</label>
+      <prefix>host=</prefix>
+      <delimiter> host=</delimiter>
+      <fieldForLabel>host</fieldForLabel>
+      <fieldForValue>host</fieldForValue>
+      <search>
+        <query>| inputlookup crushftp_hosts.csv</query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+      <choice value="*">All</choice>
+      <default>*</default>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <title>Total GB Transferred by Server</title>
+      <table>
+        <search>
+          <query>eventtype=crushftp $crush_host$ size=* return_code=226
+| dedup _time,user
+| eval size_gb=round(size/1024/1024/1024,2) 
+| rename host AS Host
+| stats sum(size_gb) AS "Total GB" by Host</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">cell</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Number of Unique Users by Server</title>
+      <table>
+        <search>
+          <query>eventtype="crushftp" 
+| rename host AS Host
+|  stats distinct_count(user) AS "Number of Users" by Host</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">cell</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Number Of Session by Server</title>
+      <table>
+        <search>
+          <query>eventtype=crushftp $crush_host$
+| rename host AS Host
+| stats distinct_count(session_id) AS "Number of Sessions" by Host</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">cell</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Number of Files by Host</title>
+      <table>
+        <search>
+          <query>eventtype=crushftp* $crush_host$ (return_code=226 OR return_code=150)
+| dedup filename
+| rename host AS Host
+| stats count(filename) AS "Number of Files" by Host</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">cell</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Protocols by Host</title>
+      <table>
+        <search>
+          <query>eventtype=crushftp* $crush_host$
+| rename host AS Host
+| stats values(protocol) AS Protocols by Host</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">100</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Longest Active Connections</title>
+      <table>
+        <search>
+          <query>eventtype=crushftp $crush_host$
+| stats range(_time) As "Seconds Taken" by session_id,user
+| fields user,"Seconds Taken"
+| rename user AS User
+| sort -"Seconds Taken"
+| head</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">20</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">true</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Total Volume by User</title>
+      <table>
+        <search>
+          <query>eventtype=crushftp $crush_host$ return_code=226 size=* 
+| eval size_mb=round(size/1024/1024,2) 
+| stats sum(size_mb) AS "Total MB" by user
+| rename user AS User
+| sort - "Total MB"
+| head</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">20</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+    <panel>
+      <title>10 Largest Files</title>
+      <table>
+        <search>
+          <query>eventtype=crushftp host=dc1-ftp2 return_code=226   (bytes_in="*"  OR bytes_out="*") 
+| dedup filename
+| eval in_mb=round(bytes_in/1024/1024,2) 
+| eval out_mb=round(bytes_out/1024/1024,2)
+| rename in_mb AS size out_mb AS size
+| stats sum(size) AS "Total MB" by filename
+| rename filename AS Filename
+| sort -"Total MB" 
+| head</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">20</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+</form>
