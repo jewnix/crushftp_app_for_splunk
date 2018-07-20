@@ -1,6 +1,6 @@
 <form>
-  <label>Traffic</label>
-  <fieldset submitButton="false" autoRun="true">
+  <label>User Traffic</label>
+  <fieldset submitButton="false">
     <input type="time" token="field1">
       <label></label>
       <default>
@@ -10,8 +10,6 @@
     </input>
     <input type="multiselect" token="crush_host" searchWhenChanged="true">
       <label>Crush Host</label>
-      <choice value="*">All</choice>
-      <default>*</default>
       <prefix>host=</prefix>
       <delimiter> host=</delimiter>
       <fieldForLabel>host</fieldForLabel>
@@ -21,8 +19,67 @@
         <earliest>-24h@h</earliest>
         <latest>now</latest>
       </search>
+      <choice value="*">All</choice>
+      <default>*</default>
     </input>
   </fieldset>
+  <row>
+    <panel>
+      <title>Total Volume by User</title>
+      <table>
+        <search>
+          <query>eventtype=crushftp $crush_host$ return_code=226 size=* 
+| eval size_mb=round(size/1024/1024) 
+| eval size_gb=round(size/1024/1024/1024,2) 
+| stats sum(size_mb) AS "Total MB" sum(size_gb) AS "Total GB" by user
+| rename user AS User
+| sort - "Total MB"
+| head</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">20</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="number" field="Total MB">
+          <option name="precision">0</option>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>10 Largest Files</title>
+      <table>
+        <search>
+          <query>eventtype=crushftp $crush_host$ return_code=226   (bytes_in="*"  OR bytes_out="*") 
+| dedup filename
+| eval in_mb=round(bytes_in/1024/1024,2) 
+| eval out_mb=round(bytes_out/1024/1024,2)
+| rename in_mb AS size out_mb AS size
+| stats sum(size) AS "Total MB" by filename
+| rename filename AS Filename
+| sort -"Total MB" 
+| head</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">20</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
   <row>
     <panel>
       <title>Inbound Traffic by User</title>

@@ -1,0 +1,57 @@
+<form>
+  <label>Banned Users and IP</label>
+  <fieldset submitButton="false">
+    <input type="time" token="field1">
+      <label></label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="multiselect" token="crush_host" searchWhenChanged="true">
+      <label>Crush Host</label>
+      <prefix>host=</prefix>
+      <delimiter> host=</delimiter>
+      <fieldForLabel>host</fieldForLabel>
+      <fieldForValue>host</fieldForValue>
+      <search>
+        <query>| inputlookup crushftp_hosts.csv</query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+      <choice value="*">All</choice>
+      <default>*</default>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <table>
+        <title>Banned Users</title>
+        <search>
+          <query>eventtype=crushftp_access_failure $crush_host$ (command=KICK OR command=BAN) User
+| stats values(user) AS User by host
+| rename host AS Host</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">cell</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Banned IP Addresses</title>
+        <search>
+          <query>eventtype=crushftp_access_failure $crush_host$ (command=KICK OR command=BAN) IP
+| stats values(src) AS  "IP Address" by host
+| rename host AS Host</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">cell</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+</form>
